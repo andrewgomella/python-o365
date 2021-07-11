@@ -205,6 +205,8 @@ class Teams(ApiComponent):
     _endpoints = {
         'get_my_presence': '/me/presence',
         'get_my_teams': '/me/joinedTeams',
+        'get_user_presence': '/users/{user_id}/presence',
+        'get_user_presences': '/communications/getPresencesByUserId',
         'get_channels': '/teams/{team_id}/channels',
         'create_channel': '/teams/{team_id}/channels',
         'get_channel_info': '/teams/{team_id}/channels/{channel_id}',
@@ -260,6 +262,41 @@ class Teams(ApiComponent):
 
         return self.presence_constructor(parent=self, **{self._cloud_data_key: data})
   
+    def get_user_presence(self, user_id=None, *args):
+        """ Returns another user's availability and activity
+
+        :rtype: teams
+        """
+        url = self.build_url(
+                self._endpoints.get('get_user_presence').format(user_id=user_id))
+        
+        response = self.con.get(url)
+
+        if not response:
+            return None
+        
+        data = response.json()
+
+        return self.presence_constructor(parent=self, **{self._cloud_data_key: data})
+   
+    def get_user_presences(self, user_ids=None, *args):
+        """ Returns multiple other users availability and activity
+
+        :rtype: teams
+        """        
+        url = self.build_url(self._endpoints.get('get_user_presences').format(user_ids=user_ids))
+
+        if user_ids:
+            data = {
+                'ids': user_ids
+            }
+        response = self.con.post(url, data=data)
+        if not response:
+            return None
+        
+        data = response.json()
+
+        return data
 
     def get_my_teams(self, *args):
         """ Returns a list of teams that I am in
